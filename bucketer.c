@@ -1,49 +1,48 @@
 #include <stdio.h>
 
-// Function to calculate SoH (State of Health)
-double calculateSoH(double present_capacity, double rated_capacity) {
-    return (present_capacity / rated_capacity) * 100.0;
+struct CountsBySoH {
+    int healthy;
+    int exchange;
+    int failed;
+};
+
+struct CountsBySoH countBatteriesByHealth(int presentCapacities[], int numBatteries) {
+    struct CountsBySoH counts;
+    counts.healthy = 0;
+    counts.exchange = 0;
+    counts.failed = 0;
+
+    for (int i = 0; i < numBatteries; i++) {
+        int presentCapacity = presentCapacities[i];
+        double soh = ((double)presentCapacity / 120.0) * 100.0; // Assuming rated capacity is 120 Ah
+
+        if (soh > 80.0) {
+            counts.healthy++;
+        } else if (soh >= 65.0) {
+            counts.exchange++;
+        } else {
+            counts.failed++;
+        }
+    }
+
+    return counts;
 }
 
-// Function to classify a battery based on SoH
-char* classifyBattery(double soh) {
-    if (soh > 80.0) {
-        return "Healthy";
-    } else if (soh >= 65.0) {
-        return "Replace";
+void testBucketingByHealth() {
+    printf("Counting batteries by SoH...\n");
+    int presentCapacities[] = {115, 118, 80, 95, 91, 77};
+    int numBatteries = sizeof(presentCapacities) / sizeof(presentCapacities[0]);
+    struct CountsBySoH counts = countBatteriesByHealth(presentCapacities, numBatteries);
+
+    if (counts.healthy == 2 && counts.exchange == 3 && counts.failed == 1) {
+        printf("Tests passed successfully.\n");
     } else {
-        return "Failed";
+        printf("Tests failed.\n");
     }
 }
 
 int main() {
-    double rated_capacity = 120.0; // Rated capacity of all batteries (in Ah)
-    double present_capacities[] = {105.0, 95.0, 60.0, 110.0, 75.0, 100.0};
-    int num_batteries = sizeof(present_capacities) / sizeof(present_capacities[0]);
-
-    int healthy_count = 0;
-    int replace_count = 0;
-    int failed_count = 0;
-
-    // Loop through each battery, calculate SoH, classify, and count
-    for (int i = 0; i < num_batteries; i++) {
-        double soh = calculateSoH(present_capacities[i], rated_capacity);
-        char* classification = classifyBattery(soh);
-
-        if (classification == "Healthy") {
-            healthy_count++;
-        } else if (classification == "Replace") {
-            replace_count++;
-        } else {
-            failed_count++;
-        }
-    }
-
-    printf("Classification Counts:\n");
-    printf("Healthy: %d\n", healthy_count);
-    printf("Replace: %d\n", replace_count);
-    printf("Failed: %d\n", failed_count);
-
+    testBucketingByHealth();
     return 0;
 }
 
